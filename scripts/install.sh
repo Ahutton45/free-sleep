@@ -58,7 +58,7 @@ mkdir -p /persistent/free-sleep-data/logs/
 mkdir -p /persistent/free-sleep-data/lowdb/
 
 # Extract the DAC_SOCKET path from frank.sh (if present) and put it in DAC_SOCK_PATH file
-grep -oP '(?<=DAC_SOCKET=)[^ ]*dac.sock' /opt/eight/bin/frank.sh > /persistent/free-sleep-data/dac_sock_path.txt
+# grep -oP '(?<=DAC_SOCKET=)[^ ]*dac.sock' /opt/eight/bin/frank.sh > /persistent/free-sleep-data/dac_sock_path.txt
 
 # DO NOT REMOVE, OLD VERSIONS WILL LOSE settings & schedules
 FILES_TO_MOVE=(
