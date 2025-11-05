@@ -19,11 +19,11 @@ const updateSide = async (side: 'left' | 'right', sideStatus: DeepPartial<SideSt
   const settings = settingsDB.data;
   if (side === 'left') {
     if (settings.left.awayMode) {
-      throw new Error('Left side is in away mode, not updating side');
+      logger.warn('Left side is in away mode, not updating side');
     }
   } else {
     if (settings.right.awayMode) {
-      throw new Error('Right side is in away mode, not updating side');
+      logger.warn('Right side is in away mode, not updating side');
     }
   }
   const controlBothSides = settings.left.awayMode || settings.right.awayMode;
@@ -72,16 +72,11 @@ const updateSettings = async (settings: Partial<DeviceStatus['settings']>) => {
 };
 
 export const updateDeviceStatus = async (deviceStatus: DeepPartial<DeviceStatus>) => {
-  logger.info(`Updating deviceStatus...`);
+  logger.info(`Updating device status..`);
 
-  try {
-    if (deviceStatus.isPriming) await executeFunction('PRIME');
-    if (deviceStatus?.left) await updateSide('left', deviceStatus.left);
-    if (deviceStatus?.right) await updateSide('right', deviceStatus.right);
-    if (deviceStatus?.settings) await updateSettings(deviceStatus.settings);
-    logger.info('Finished updating device status');
-  } catch (error) {
-    logger.error('Error updating device status:', error);
-    throw error;
-  }
+  if (deviceStatus.isPriming) await executeFunction('PRIME');
+  if (deviceStatus?.left) await updateSide('left', deviceStatus.left);
+  if (deviceStatus?.right) await updateSide('right', deviceStatus.right);
+  if (deviceStatus?.settings) await updateSettings(deviceStatus.settings);
+  logger.info('Finished updating device status');
 };

@@ -1,3 +1,5 @@
+
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="4e6d15f8-c2a4-5fab-8f74-665e169f86d6")}catch(e){}}();
 import _ from 'lodash';
 import cbor from 'cbor';
 import { executeFunction } from '../../8sleep/deviceApi.js';
@@ -14,12 +16,12 @@ const updateSide = async (side, sideStatus) => {
     const settings = settingsDB.data;
     if (side === 'left') {
         if (settings.left.awayMode) {
-            throw new Error('Left side is in away mode, not updating side');
+            logger.warn('Left side is in away mode, not updating side');
         }
     }
     else {
         if (settings.right.awayMode) {
-            throw new Error('Right side is in away mode, not updating side');
+            logger.warn('Right side is in away mode, not updating side');
         }
     }
     const controlBothSides = settings.left.awayMode || settings.right.awayMode;
@@ -66,20 +68,16 @@ const updateSettings = async (settings) => {
     await executeFunction('SET_SETTINGS', hexString);
 };
 export const updateDeviceStatus = async (deviceStatus) => {
-    logger.info(`Updating deviceStatus...`);
-    try {
-        if (deviceStatus.isPriming)
-            await executeFunction('PRIME');
-        if (deviceStatus?.left)
-            await updateSide('left', deviceStatus.left);
-        if (deviceStatus?.right)
-            await updateSide('right', deviceStatus.right);
-        if (deviceStatus?.settings)
-            await updateSettings(deviceStatus.settings);
-        logger.info('Finished updating device status');
-    }
-    catch (error) {
-        logger.error('Error updating device status:', error);
-        throw error;
-    }
+    logger.info(`Updating device status..`);
+    if (deviceStatus.isPriming)
+        await executeFunction('PRIME');
+    if (deviceStatus?.left)
+        await updateSide('left', deviceStatus.left);
+    if (deviceStatus?.right)
+        await updateSide('right', deviceStatus.right);
+    if (deviceStatus?.settings)
+        await updateSettings(deviceStatus.settings);
+    logger.info('Finished updating device status');
 };
+//# sourceMappingURL=updateDeviceStatus.js.map
+//# debugId=4e6d15f8-c2a4-5fab-8f74-665e169f86d6

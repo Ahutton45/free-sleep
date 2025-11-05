@@ -18,8 +18,8 @@ import { useAppStore } from '@state/appStore.tsx';
 import { DailySchedule } from '@api/schedulesSchema.ts';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
 
-// There's probably a better way to share this function - I just don't know what it is
-import { formatTemperature } from '../ControlTempPage/TemperatureLabel';
+import { formatTemperature } from '@lib/temperatureConversions.ts';
+
 const ACCORDION_NAME = 'temperatureAdjustments';
 const TEMPERATURES_LIST = _.range(55, 111); // Generates a range from 55 to 110 inclusive
 
@@ -134,6 +134,7 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
                 <TextField
                   label="Time"
                   type="time"
+                  variant='standard'
                   value={ time }
                   sx={ { flexGrow: 1 } }
                   onChange={ (event) => handleUpdateTime(time, event.target.value) }
@@ -154,6 +155,7 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
                   }
                   sx={ { width: '110px' } }
                   disabled={ isUpdating }
+                  size='small'
                 >
                   {
                     TEMPERATURES_LIST.map((temp) => (

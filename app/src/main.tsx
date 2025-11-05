@@ -1,3 +1,7 @@
+import { initSentry } from './sentry.tsx';
+initSentry();
+import * as Sentry from '@sentry/react';
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline } from '@mui/material';
@@ -18,6 +22,7 @@ import VitalsPage from './pages/DataPage/VitalsPage/VitalsPage.tsx';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import LogsPage from './pages/DataPage/LogsPage/LogsPage.tsx';
+import StatusPage from './pages/StatusPage/StatusPage.tsx';
 
 const darkTheme = createTheme({
   palette: {
@@ -45,6 +50,8 @@ const queryClient = new QueryClient({
   },
 });
 
+const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
+
 
 const App = () => {
   return (
@@ -63,13 +70,13 @@ const App = () => {
               } }
             />
             <BrowserRouter basename="/">
-              <Routes>
+              <SentryRoutes>
                 <Route path="/" element={ <Layout/> }>
                   <Route index element={ <SettingsPage/> }/>
                   <Route path="temperature" element={ <ControlTempPage/> }/>
                   <Route path="left" element={ <ControlTempPage/> }/>
                   <Route path="right" element={ <ControlTempPage/> }/>
-
+                  <Route path="status" element={ <StatusPage /> } />
 
                   <Route path="data" element={ <DataPage /> }>
                     <Route path="sleep" element={ <SleepPage/> }/>
@@ -80,11 +87,10 @@ const App = () => {
                   <Route path="settings" element={ <SettingsPage/> }/>
                   <Route path="schedules" element={ <SchedulePage/> }/>
                 </Route>
-              </Routes>
+              </SentryRoutes>
             </BrowserRouter>
           </AppStoreProvider>
         </LocalizationProvider>
-
       </ThemeProvider>
     </QueryClientProvider>
   );
@@ -92,7 +98,7 @@ const App = () => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
+    <ErrorBoundary componentName='App'>
       <App />
     </ErrorBoundary>
   </StrictMode>

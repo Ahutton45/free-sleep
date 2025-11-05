@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/GridLegacy';
 import Switch from '@mui/material/Switch';
 import { Box, TextField, Typography } from '@mui/material';
 import { DeepPartial } from 'ts-essentials';
@@ -33,7 +33,7 @@ export default function SideSettings({ side, settings, updateSettings }: AwayMod
 
   return (
     <Box sx={ { display: 'flex', flexDirection: 'column', alignItems: 'center' } }>
-      <Typography variant="h5">{ title } Side</Typography>
+      <Typography variant="h6">{ title } Side</Typography>
       <TextField
         label="Side Name"
         placeholder="Enter side name"

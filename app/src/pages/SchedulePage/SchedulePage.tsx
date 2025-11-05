@@ -21,6 +21,8 @@ import { useSchedules } from '@api/schedules';
 import { useScheduleStore } from './scheduleStore.tsx';
 import { useSettings } from '@api/settings';
 import { LOWERCASE_DAYS } from './days.ts';
+import TemperatureScheduleChart from './ScheduleChart.tsx';
+import ErrorBoundary from '@components/ErrorBoundary.tsx';
 
 
 const getAdjustedDayOfWeek = (): DayOfWeek => {
@@ -105,8 +107,11 @@ export default function SchedulePage() {
         mb: 15,
       } }
     >
-      <SideControl title={ 'Schedules' }/>
+      <SideControl/>
       <DayTabs/>
+      <ErrorBoundary componentName='Scheduling chart'>
+        <TemperatureScheduleChart />
+      </ErrorBoundary>
       <StartTimeSection displayCelsius={ displayCelsius }/>
       <PowerOffTime/>
       <Box sx={ { mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 } }>

@@ -1,4 +1,4 @@
-import CircularSlider from 'react-circular-slider-svg';
+import { CircularSliderWithChildren } from 'react-circular-slider-svg';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
 import { useAppStore } from '@state/appStore';
 import styles from './Slider.module.scss';
@@ -8,6 +8,7 @@ import { useControlTempStore } from './controlTempStore.tsx';
 import { useTheme } from '@mui/material/styles';
 import { useResizeDetector } from 'react-resize-detector';
 import { useSettings } from '@api/settings.ts';
+import { MAX_TEMP_F, MIN_TEMP_F, getTemperatureColor } from '@lib/temperatureConversions.ts';
 
 type SliderProps = {
   isOn: boolean;
@@ -15,15 +16,6 @@ type SliderProps = {
   currentTemperatureF: number;
   refetch: any;
   displayCelsius: boolean;
-}
-
-function getTemperatureColor(temp: number | undefined) {
-  if (temp === undefined) return '#262626';
-  if (temp === undefined) return '#262626';
-  if (temp <= 70) return '#1c54b2';
-  if (temp <= 82) return '#5393ff';
-  if (temp <= 95) return '#db5858';
-  return '#d32f2f';
 }
 
 export default function Slider({ isOn, currentTargetTemp, refetch, currentTemperatureF, displayCelsius }: SliderProps) {
@@ -39,10 +31,14 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
     if (!deviceStatus) return;
 
     setIsUpdating(true);
-    await postDeviceStatus(deviceStatus)
+    void postDeviceStatus({
+      [side]: {
+        targetTemperatureF: deviceStatus[side].targetTemperatureF
+      }
+    })
       .then(() => {
         // Wait 1 second before refreshing the device status
-        return new Promise((resolve) => setTimeout(resolve, 1_000));
+        return new Promise((resolve) => setTimeout(resolve, 1_500));
       })
       .then(() => refetch())
       .catch(error => {
@@ -61,16 +57,19 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   const isHeating = (sideStatus?.currentTemperatureF ?? 55) < (sideStatus?.targetTemperatureF ?? 55);
 
   return (
-    <div ref={ ref } style={ { position: 'relative', display: 'inline-block', width: '100%' } }>
+    <div
+      ref={ ref }
+      style={ { position: 'relative', display: 'inline-block', width: '100%', maxWidth: '400px' } }
+    >
       { /* Circular Slider */ }
       <div className={ `${styles.Slider} ${disabled && styles.Disabled} ${isHeating && styles.Heating}` }>
-        <CircularSlider
+        <CircularSliderWithChildren
           disabled={ disabled }
           onControlFinished={ handleControlFinished }
           size={ width }
           trackWidth={ 6 }
-          minValue={ 55 }
-          maxValue={ 110 }
+          minValue={ MIN_TEMP_F }
+          maxValue={ MAX_TEMP_F }
           startAngle={ 60 }
           endAngle={ 300 }
           angleType={ {
@@ -99,19 +98,20 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
             },
           } }
           handleSize={ 8 }
-        />
+        >
+          <TemperatureLabel
+            isOn={ isOn }
+            sliderTemp={ deviceStatus?.[side]?.targetTemperatureF || 55 }
+            sliderColor={ sliderColor }
+            currentTargetTemp={ currentTargetTemp }
+            currentTemperatureF={ currentTemperatureF }
+            displayCelsius={ displayCelsius }
+          />
+        </CircularSliderWithChildren>
       </div>
-      <TemperatureLabel
-        isOn={ isOn }
-        sliderTemp={ deviceStatus?.[side]?.targetTemperatureF || 55 }
-        sliderColor={ sliderColor }
-        currentTargetTemp={ currentTargetTemp }
-        currentTemperatureF={ currentTemperatureF }
-        displayCelsius={ displayCelsius }
-      />
       {
         isOn && (
-          <TemperatureButtons refetch={ refetch }/>
+          <TemperatureButtons refetch={ refetch } currentTargetTemp={ currentTargetTemp }/>
         ) }
     </div>
   );

@@ -3,6 +3,7 @@
 import { z } from 'zod';
 
 const SideStatusSchema = z.object({
+  currentTemperatureLevel: z.number(),
   currentTemperatureF: z.number(),
   targetTemperatureF: z.number()
     .min(55, { message: 'Temperature must be at least 55°F' })
@@ -23,7 +24,21 @@ export const DeviceStatusSchema = z.object({
     gainRight: z.number(),
     ledBrightness: z.number(),
   }),
+  coverVersion: z.string(),
+  hubVersion: z.string(),
+  freeSleep: z.object({
+    version: z.string(),
+    branch: z.string(),
+  }),
+  wifiStrength: z.number(),
 }).strict();
 
 export type SideStatus = z.infer<typeof SideStatusSchema>;
 export type DeviceStatus = z.infer<typeof DeviceStatusSchema>;
+
+export enum Version {
+  NotFound = 'Version not found',
+  Pod3 = 'Pod 3',
+  Pod4 = 'Pod 4',
+  Pod5 = 'Pod 5',
+}

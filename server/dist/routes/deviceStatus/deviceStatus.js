@@ -1,3 +1,5 @@
+
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="7ac032d3-1788-5130-aa1c-8af3b8966876")}catch(e){}}();
 import express from 'express';
 import { getFranken } from '../../8sleep/frankenServer.js';
 import { DeviceStatusSchema } from './deviceStatusSchema.js';
@@ -20,13 +22,9 @@ router.post('/deviceStatus', async (req, res) => {
         });
         return;
     }
-    try {
-        await updateDeviceStatus(body);
-        res.status(204).end();
-    }
-    catch (error) {
-        logger.error(error);
-        res.status(500).json({ error });
-    }
+    await updateDeviceStatus(body);
+    res.status(204).end();
 });
 export default router;
+//# sourceMappingURL=deviceStatus.js.map
+//# debugId=7ac032d3-1788-5130-aa1c-8af3b8966876

@@ -1,20 +1,22 @@
 import { DeepPartial } from 'ts-essentials';
+import { Typography, Box } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 
 import SideSettings from './SideSettings.tsx';
 import PageContainer from '../PageContainer.tsx';
-import TimeZoneSelector from './TimeZoneSelector.tsx';
-import TemperatureFormatSelector from './TemperatureFormatSelector.tsx';
 import { Settings } from '@api/settingsSchema.ts';
 import { postSettings, useSettings } from '@api/settings.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import DailyPriming from './DailyPriming.tsx';
-import DailyReboot from './DailyReboot.tsx';
 import LicenseModal from './LicenseModal.tsx';
 import PrimeControl from './PrimeControl.tsx';
-import LedBrightnessSlider from './LedBrightnessSlider.tsx';
 import Donate from './Donate.tsx';
 import DiscordLink from './DiscordLink.tsx';
 import Divider from './Divider.tsx';
+import FeaturesSection from './FeaturesSection/FeaturesSection.tsx';
+import Section from './Section.tsx';
+import DeviceSettingsSection from './DeviceSettingsSection/DeviceSettingsSection.tsx';
+import ErrorBoundary from '@components/ErrorBoundary.tsx';
 
 
 export default function SettingsPage() {
@@ -22,15 +24,9 @@ export default function SettingsPage() {
   const { setIsUpdating } = useAppStore();
 
   const updateSettings = (settings: DeepPartial<Settings>) => {
-    // console.log(`SettingsPage.tsx:21 | settings: `, settings);
-    // return
     setIsUpdating(true);
 
     postSettings(settings)
-      .then(() => {
-        // Wait 1 second before refreshing the device status
-        return new Promise((resolve) => setTimeout(resolve, 1_000));
-      })
       .then(() => refetch())
       .catch(error => {
         console.error(error);
@@ -40,26 +36,50 @@ export default function SettingsPage() {
 
   return (
     <PageContainer sx={ { mb: 15, mt: 2 } }>
-      <TimeZoneSelector settings={ settings } updateSettings={ updateSettings }/>
-      <TemperatureFormatSelector settings={ settings } updateSettings={ updateSettings } />
-      <DailyReboot settings={ settings } updateSettings={ updateSettings } />
-      <Divider />
-      <DailyPriming settings={ settings } updateSettings={ updateSettings }/>
-      <PrimeControl/>
+      <ErrorBoundary componentName='Device settings'>
+        <DeviceSettingsSection updateSettings={ updateSettings } />
+      </ErrorBoundary>
+      <ErrorBoundary componentName='Priming settings'>
+        <Section title="Priming">
+          <DailyPriming settings={ settings } updateSettings={ updateSettings }/>
+          <br/>
+          <PrimeControl/>
 
-      <Divider />
-      <SideSettings side="left" settings={ settings } updateSettings={ updateSettings }/>
-      <br />
-      <SideSettings side="right" settings={ settings } updateSettings={ updateSettings }/>
-      <Divider />
-      <LedBrightnessSlider/>
+          <Box display="flex" gap={ 1 } sx={ { mt: 2 } }>
+            <InfoIcon sx={ { color: 'text.secondary' } }/>
+            <Typography color='text.secondary'>
+            Regular priming helps prevent air bubbles, ensures even cooling and heating.
+            Schedule priming during a time that you're not on the bed.
+            </Typography>
+          </Box>
+        </Section>
+      </ErrorBoundary>
 
-      <Divider />
-      <DiscordLink />
-      <Divider />
-      <Donate />
-      <Divider />
-      <LicenseModal/>
+      <FeaturesSection/>
+      <ErrorBoundary componentName='Side settings'>
+
+        <Section title="Side settings">
+          <SideSettings side="left" settings={ settings } updateSettings={ updateSettings }/>
+          <br/>
+          <SideSettings side="right" settings={ settings } updateSettings={ updateSettings }/>
+          <Box display="flex" gap={ 1 } sx={ { mt: 1 } }>
+
+            <InfoIcon sx={ { color: 'text.secondary' } }/>
+            <Typography color="text.secondary">
+            Away mode:
+            Disables schedules and temperature control for one side.
+            That side will mirror any temperature or schedule changes from the active side.
+            If both sides are in away mode, no schedules will apply.
+            </Typography>
+          </Box>
+        </Section>
+      </ErrorBoundary>
+      <ErrorBoundary componentName='Info section'>
+        <DiscordLink/>
+        <Donate/>
+        <Divider/>
+        <LicenseModal/>
+      </ErrorBoundary>
     </PageContainer>
   );
 }

@@ -12,7 +12,7 @@ Key functionalities:
 Usage:
 Run the script with required parameters:
     /home/dac/venv/bin/python calibrate_sensor_thresholds.py --side=left --start_time="YYYY-MM-DD HH:MM:SS" --end_time="YYYY-MM-DD HH:MM:SS"
-    cd /home/dac/free-sleep/biometrics/sleep_detection && /home/dac/venv/bin/python -B analyze_sleep.py --side=left --start_time="2025-03-02 03:00:00" --end_time="2025-03-02 15:00:00"
+    cd /home/dac/free-sleep/biometrics/sleep_detection && /home/dac/venv/bin/python -B analyze_sleep.py --side=left --start_time="2025-08-07 04:00:00" --end_time="2025-08-07 15:00:00"
 """
 
 import sys
@@ -36,9 +36,10 @@ from get_logger import get_logger
 # This must run before the other local import in order to set up the logger
 logger = get_logger('sleep-analyzer')
 
-from sleep_detector import detect_sleep
+from sleep_detector import detect_sleep, detect_movement
 from resource_usage import get_memory_usage_unix, get_available_memory_mb
 from biometrics_helpers import validate_datetime_utc
+from service_health import update_health, is_biometrics_enabled
 
 
 
@@ -77,10 +78,11 @@ def _parse_args() -> Namespace:
 
 if __name__ == "__main__":
     try:
+        if not is_biometrics_enabled():
+            logger.info('Not analyzing sleep, biometrics is disabled')
+
         logger.debug(f"START Free Memory: {get_available_memory_mb()} MB")
         logger.debug(f"START Memory Usage: {get_memory_usage_unix():.2f} MB")
-        if get_available_memory_mb() < 400:
-            raise MemoryError('Available memory is too little, exiting...')
 
         if logger.env == 'prod':
             args = _parse_args()
@@ -94,21 +96,33 @@ if __name__ == "__main__":
                 end_time=datetime.strptime(f'{date} 15:00:00', '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc),
             )
 
+        job_key = f'analyzeSleep{args.side.capitalize()}'
+        update_health(job_key, 'started', '')
 
-        detect_sleep(
+        if get_available_memory_mb() < 400:
+            message = 'Available memory is too little, exiting...'
+            update_health(job_key, 'failed', message)
+            raise MemoryError(message)
+
+        merged_df = detect_sleep(
             args.side,
             args.start_time,
             args.end_time,
             FOLDER_PATH
         )
 
+        detect_movement(args.side, merged_df)
+        update_health(job_key, 'healthy', '')
+
         logger.debug(f"END Memory Usage: {get_memory_usage_unix():.2f} MB")
         logger.debug(f"END Free Memory: {get_available_memory_mb()} MB")
     except KeyboardInterrupt:
         logger.info('Keyboard interrupt signal received, exiting...')
-    except Exception as e:
-        logger.error(e)
+        update_health(job_key, 'failed', 'Interrupted')
+    except Exception as error:
+        logger.error(error)
         stack = traceback.format_exc()
         logger.error(stack)
         logger.error('Error analyzing sleep, exiting...')
+        update_health(job_key, 'failed', repr(error))
 

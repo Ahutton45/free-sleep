@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
+import { Box, CircularProgress } from '@mui/material';
 
 import AlarmDismissal from './AlarmDismissal.tsx';
 import AwayNotification from './AwayNotification.tsx';
@@ -14,19 +14,16 @@ import { useControlTempStore } from './controlTempStore.tsx';
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
 import { useTheme } from '@mui/material/styles';
+import PrimingNotification from './PrimingNotification.tsx';
+import AlarmNotification from './AlarmNotification.tsx';
 
 
 export default function ControlTempPage() {
-  const { data: deviceStatusOriginal, isError, refetch } = useDeviceStatus();
-  const { setOriginalDeviceStatus, deviceStatus } = useControlTempStore();
+  const { isError, refetch, data: deviceStatus } = useDeviceStatus();
+  const setDeviceStatus = useControlTempStore(state => state.setDeviceStatus);
   const { data: settings } = useSettings();
   const { isUpdating, side } = useAppStore();
   const theme = useTheme();
-
-  useEffect(() => {
-    if (!deviceStatusOriginal) return;
-    setOriginalDeviceStatus(deviceStatusOriginal);
-  }, [deviceStatusOriginal]);
 
   const sideStatus = deviceStatus?.[side];
   const isOn = sideStatus?.isOn || false;
@@ -34,6 +31,11 @@ export default function ControlTempPage() {
   useEffect(() => {
     refetch();
   }, [side]);
+
+  useEffect(() => {
+    if (!deviceStatus) return;
+    setDeviceStatus(deviceStatus);
+  }, [deviceStatus]);
 
   return (
     <PageContainer
@@ -44,7 +46,6 @@ export default function ControlTempPage() {
         },
       } }
     >
-      <SideControl title={ 'Temperature' } />
       <Slider
         isOn={ isOn }
         currentTargetTemp={ sideStatus?.targetTemperatureF || 55 }
@@ -52,6 +53,7 @@ export default function ControlTempPage() {
         currentTemperatureF={ sideStatus?.currentTemperatureF || 55 }
         displayCelsius={ settings?.temperatureFormat === 'celsius' || false }
       />
+
       { isError ? (
         <Button
           variant="contained"
@@ -61,13 +63,22 @@ export default function ControlTempPage() {
           Try again
         </Button>
       ) : (
-        <PowerButton isOn={ sideStatus?.isOn || false } refetch={ refetch } />
+        <PowerButton isOn={ sideStatus?.isOn || false } refetch={ refetch }/>
       ) }
 
-      <AwayNotification settings={ settings } />
-      <WaterNotification deviceStatus={ deviceStatus } />
-      <AlarmDismissal deviceStatus={ deviceStatus } refetch={ refetch } />
-      { isUpdating && <CircularProgress /> }
+      <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1 } }>
+        {
+          deviceStatus?.isPriming && (
+            <PrimingNotification/>
+          )
+        }
+        <AlarmNotification/>
+        <AwayNotification settings={ settings }/>
+        <WaterNotification/>
+      </Box>
+      <AlarmDismissal refetch={ refetch }/>
+      { isUpdating && <CircularProgress/> }
+      <SideControl showTemp={ true }/>
     </PageContainer>
   );
 }

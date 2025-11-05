@@ -1,6 +1,9 @@
 // WARNING! - Any changes here MUST be the same between app/src/api & server/src/db/
+
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="a30013e4-a9a3-59a9-a75b-4713ae53bbaa")}catch(e){}}();
 import { z } from 'zod';
 const SideStatusSchema = z.object({
+    currentTemperatureLevel: z.number(),
     currentTemperatureF: z.number(),
     targetTemperatureF: z.number()
         .min(55, { message: 'Temperature must be at least 55°F' })
@@ -20,4 +23,20 @@ export const DeviceStatusSchema = z.object({
         gainRight: z.number(),
         ledBrightness: z.number(),
     }),
+    coverVersion: z.string(),
+    hubVersion: z.string(),
+    freeSleep: z.object({
+        version: z.string(),
+        branch: z.string(),
+    }),
+    wifiStrength: z.number(),
 }).strict();
+export var Version;
+(function (Version) {
+    Version["NotFound"] = "Version not found";
+    Version["Pod3"] = "Pod 3";
+    Version["Pod4"] = "Pod 4";
+    Version["Pod5"] = "Pod 5";
+})(Version || (Version = {}));
+//# sourceMappingURL=deviceStatusSchema.js.map
+//# debugId=a30013e4-a9a3-59a9-a75b-4713ae53bbaa
